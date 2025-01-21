@@ -1,10 +1,12 @@
 import joblib
 import numpy as np
 import pandas as pd
+import streamlit as st
 import plotly.express as px
 from interpret.glassbox import ExplainableBoostingClassifier, ExplainableBoostingRegressor
 from sklearn.metrics import accuracy_score, r2_score
 from t2ebm_helpers import extract_graph
+from typing import Union
 
 
 def load_model(file_path: str):
@@ -39,6 +41,8 @@ def load_ebm_data(file_path: str):
                 "explanation": f"Graph for {graph.feature_name}",
                 "feature_type": graph.feature_type,
                 "feature_name": graph.feature_name,
+                "history": [list(graph.scores)],
+                "current_iteration": 0,
             }
         return ebm, ebm_data
 
@@ -149,20 +153,26 @@ def update_term_scores(ebm, feature_data):
 
     return adjusted_ebm
 
-def keep_changes(feature, state):
+def keep_changes(ebm_data: dict, selected_feature: str):
     """
     Keeps the adjusted shape function and updates the original function with the adjusted one.
 
     Args:
-        feature (str): The selected feature name.
-        state (dict): The session state.
+        ebm_data (dict): The session state.
+        selected_feature (str): The selected feature name.
     """
-    state["ebm_data"][feature]["y_vals"] = state["ebm_data"][feature]["adjusted_y_vals"]
+    feature_data = ebm_data[selected_feature]
+    feature_data["history"].append(list(feature_data["adjusted_y_vals"]))
+    feature_data["current_iteration"] += 1
+    feature_data["y_vals"] = list(feature_data["adjusted_y_vals"])
+    feature_data["adjusted_visible"] = False
+
+    """state["ebm_data"][feature]["y_vals"] = state["ebm_data"][feature]["adjusted_y_vals"]
     state["ebm_data"][feature]["adjusted_y_vals"] = []
-    state["ebm_data"][feature]["adjusted_visible"] = False
+    state["ebm_data"][feature]["adjusted_visible"] = False"""
 
 
-def discard_changes(feature, state):
+def discard_changes(ebm_data: dict, selected_feature: str):
     """
     Discards the adjusted changes and reverts to the original shape function.
 
@@ -170,29 +180,42 @@ def discard_changes(feature, state):
         feature (str): The selected feature name.
         state (dict): The session state.
     """
-    state["ebm_data"][feature]["adjusted_y_vals"] = []
-    state["ebm_data"][feature]["adjusted_visible"] = False
+    ebm_data[selected_feature]["adjusted_y_vals"] = []
+    ebm_data[selected_feature]["adjusted_visible"] = False
 
 
-def save_adjusted_model(ebm, ebm_data: dict, save_path: str):
+def save_adjusted_model(
+        ebm: Union[ExplainableBoostingClassifier, ExplainableBoostingRegressor],
+        ebm_data: dict,
+        save_path: str
+):
     """
     Save the adjusted model by updating its term_scores_ with values from ebm_data.
 
     Args:
-        file_path (str): Path to the original .pkl file containing the EBM.
+        ebm (ExplainableBoostingClassifier/ExplainableBoostingRegressor): The EBM model in memory.
         ebm_data (dict): The updated EBM data containing y_vals for each feature.
         save_path (str): Path to save the adjusted EBM.
     """
+    for feature_name, feature_data in ebm_data.items():
+        idx = ebm.feature_names_in_.index(feature_name)
+        ebm.term_scores_[idx][1:-1] = feature_data["y_vals"] # preserve missing and unknown bins
+    joblib.dump(ebm, save_path)
 
-    if isinstance(ebm, (ExplainableBoostingClassifier, ExplainableBoostingRegressor)):
-        for feature_name, feature_data in ebm_data.items():
-            idx = ebm.feature_names_in_.index(feature_name)
-            ebm.term_scores_[idx][1:-1] = feature_data["y_vals"] # preserve missing and unknown bins
+def previous_iteration(ebm_data: dict, selected_feature: str):
+    feature_data = ebm_data[selected_feature]
+    if feature_data["current_iteration"] > 0:
+        feature_data["current_iteration"] -= 1
+        feature_data["y_vals"] = feature_data["history"][feature_data["current_iteration"]]
+        st.rerun()
+    else:
+        st.warning("You're already at the first iteration!")
 
-        # Save the adjusted model
-        joblib.dump(ebm, save_path)
-        return
-
-    raise TypeError("The loaded object is not an Explainable Boosting Machine.")
-
-
+def next_iteration(ebm_data: dict, selected_feature: str):
+    feature_data = ebm_data[selected_feature]
+    if feature_data["current_iteration"] < len(feature_data["history"]) - 1:
+        feature_data["current_iteration"] += 1
+        feature_data["y_vals"] = feature_data["history"][feature_data["current_iteration"]]
+        st.rerun()
+    else:
+        st.warning("You're already at the latest iteration!")

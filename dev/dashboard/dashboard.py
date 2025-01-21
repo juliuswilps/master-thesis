@@ -49,15 +49,26 @@ with col2:
         disabled=True,
     )
 
+col1, col2, col3 = st.columns([1, 1, 1])
+with col1:
+    if st.button("⬅️ Previous Iteration"):
+        helpers.previous_iteration(ebm_data, selected_feature)
+
+with col3:
+    if st.button("➡️ Next Iteration"):
+        helpers.next_iteration(ebm_data, selected_feature)
+
+st.write(f"Iteration: {feature_data['current_iteration'] + 1} / {len(feature_data['history'])}")
+
 # Buttons
 col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
 with col1:
     if feature_data["adjusted_visible"] and st.button("✅ Keep Changes"):
-        helpers.keep_changes(selected_feature, st.session_state)
+        helpers.keep_changes(ebm_data, selected_feature)
         st.rerun()
 with col3:
     if feature_data["adjusted_visible"] and st.button("❌ Discard Changes"):
-        helpers.discard_changes(selected_feature, st.session_state)
+        helpers.discard_changes(ebm_data, selected_feature)
         st.rerun()
 with col2:
     if not feature_data["adjusted_visible"] and st.button("🛠️ Generate Adjusted Shape Function"):
