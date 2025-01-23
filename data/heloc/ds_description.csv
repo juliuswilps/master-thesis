@@ -1,0 +1,12 @@
+Column Name,Description,Feature Type,Values,Role
+ExternalRiskEstimate,Consolidated version of risk markers,Continuous,"[33, 94]",Predictor
+MSinceOldestTradeOpen,Months since oldest trade open,Continuous,"[2, 803]",Predictor
+AverageMInFile,Average months in file,Continuous,"[0, 383]",Predictor
+NumSatisfactoryTrades,Number of satisfactory trades,Continuous,"[0, 79]",Predictor
+PercentTradesNeverDelq,Percentage of trades never delinquent,Continuous,"[0, 100]",Predictor
+MSinceMostRecentDelq,Months since most recent delinquency,Continuous,"[0, 83]",Predictor
+PercentInstallTrades,Percentage of installment trades,Continuous,"[0, 100]",Predictor
+MSinceMostRecentInqexcl7days,Months since most recent inquiry excl. 7 days,Continuous,"[0, 24]",Predictor
+NetFractionRevolvingBurden,Net fraction revolving burden (= revolving balance divided by credit limit),Continuous,"[0, 232]",Predictor
+NumRevolvingTradesWBalance,Number of revolving trades with balance,Continuous,"[0, 32]",Predictor
+RiskPerformance,Paid as negotiated flag (12-36 Months). String of “good” and “bad”,Categorical,"{0, 1}",Target
