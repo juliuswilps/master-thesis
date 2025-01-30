@@ -5,8 +5,10 @@ import streamlit as st
 import plotly.express as px
 from interpret.glassbox import ExplainableBoostingClassifier, ExplainableBoostingRegressor
 from sklearn.metrics import accuracy_score, r2_score
-from t2ebm_helpers import extract_graph
 from typing import Union
+from dotenv import load_dotenv
+load_dotenv()
+from t2ebm.graphs import extract_graph
 
 
 def load_model(file_path: str):
