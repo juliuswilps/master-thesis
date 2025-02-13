@@ -52,28 +52,39 @@ def load_ebm_data(file_path: str):
 def create_shape_function_plot(feature_data):
     # Set x_key and x_label for both feature types
     x_key = "X"
-    x_label = "Category" if feature_data["feature_type"] == "nominal" else "X-axis"
+    x_label = "Category" if feature_data["feature_type"] == "nominal" else feature_data["feature_name"]
 
     # Create data for plotting
     plot_data = pd.DataFrame({
         "X": feature_data["x_vals"],
-        "Original Shape Function": feature_data["y_vals"],
+        "Influence Curve": feature_data["y_vals"],
     })
 
     # Add the adjusted shape function if visible
     if feature_data["adjusted_visible"]:
-        plot_data["Adjusted Shape Function"] = feature_data["adjusted_y_vals"]
+        plot_data["Adjusted Influence Curve"] = feature_data["adjusted_y_vals"]
 
     # Select plot type based on feature type
     plot_func = px.bar if feature_data["feature_type"] == "nominal" else px.line
+
+    color_map = {
+        "Influence Curve": "blue",
+        "Adjusted Influence Curve": "orange",
+    }
 
     # Create the plot
     fig = plot_func(
         plot_data,
         x=x_key,
-        y=plot_data.columns[1:],  # Handles both Original and Adjusted shapes
-        labels={"value": "Function Value", x_key: x_label},
-        title=f"Shape Function for {feature_data['feature_name']}",
+        y=plot_data.columns[1:],
+        color_discrete_map=color_map,
+        labels={"value": "Influence on Prediction", x_key: x_label},
+        title=f"Influence Curve for {feature_data['feature_name']}",
+    )
+
+    fig.update_layout(
+        xaxis=dict(autorange=True),  # Lock x-axis to autoscale
+        yaxis=dict(autorange=True),  # Lock y-axis to autoscale
     )
 
     # Highlight baseline line
@@ -92,6 +103,7 @@ def generate_adjusted_graph(feature_name: str, feature_type: str, x_values, stat
         feature_type (str): Type of the feature (nominal or continuous).
         x_values (list): X-values of the feature.
     """
+    print(state["ebm_data"][feature_name]["y_vals"])
     # Static demo values for now
     if feature_type == "continuous":
         # Use a sine wave to make the adjusted graph visually distinct
@@ -101,6 +113,11 @@ def generate_adjusted_graph(feature_name: str, feature_type: str, x_values, stat
     else:
         # Fallback for unknown features
         adjusted_values = [0] * len(x_values)  # Default fallback
+
+    if feature_name == "Credit Score":
+        adjusted_values  = [-y for y in state["ebm_data"][feature_name]["y_vals"]]
+        explanation = "I inverted the y-values because the original shape function contradicted domain knowledge by assigning lower probabilities of loan repayment to higher credit scores. In reality, a higher credit score should indicate a lower risk of default, meaning the function should have positive values for high scores and negative values for low scores. This simple inversion corrects the direction while preserving the relative differences between values."
+        state["ebm_data"][feature_name]["explanation"] = explanation
 
     # Save adjusted values to session state
     state["ebm_data"][feature_name]["adjusted_y_vals"] = adjusted_values
@@ -211,7 +228,7 @@ def previous_iteration(ebm_data: dict, selected_feature: str):
         feature_data["y_vals"] = feature_data["history"][feature_data["current_iteration"]]
         st.rerun()
     else:
-        st.warning("You're already at the first iteration!")
+        st.warning("No earlier versions available!")
 
 def next_iteration(ebm_data: dict, selected_feature: str):
     feature_data = ebm_data[selected_feature]
@@ -220,4 +237,4 @@ def next_iteration(ebm_data: dict, selected_feature: str):
         feature_data["y_vals"] = feature_data["history"][feature_data["current_iteration"]]
         st.rerun()
     else:
-        st.warning("You're already at the latest iteration!")
+        st.warning("No later versions available!")

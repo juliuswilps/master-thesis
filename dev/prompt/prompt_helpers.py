@@ -6,7 +6,7 @@ from caafe.run_llm_code import check_ast
 import numpy as np
 
 def get_prompt(
-        ebm_graph: EBMGraph, data_description_unparsed=None, **kwargs
+    ebm_graph: EBMGraph, data_description_unparsed=None, **kwargs
 ):
     """
     Generates a prompt to identify and correct only the most significant domain knowledge anomaly in an EBM graph shape function.
