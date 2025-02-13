@@ -69,12 +69,12 @@ with col3:
         helpers.discard_changes(ebm_data, selected_feature)
         st.rerun()
 with col2:
-    if not feature_data["adjusted_visible"] and st.button("🛠️ Generate Adjusted Influence Curve"):
+    if not feature_data["adjusted_visible"] and st.button("🛠️ Generate Adjusted Curve"):
         helpers.generate_adjusted_graph(selected_feature, feature_data["feature_type"], feature_data["x_vals"], st.session_state)
         st.rerun()
 
-with col4:
-    if st.button("💾 Save Updated AI Model"):
-        helpers.save_adjusted_model(ebm, ebm_data, "../updated_ebm.pkl")
-        st.success("Model saved to ../updated_ebm.pkl")
+#with col4:
+#    if st.button("💾 Save Updated AI Model"):
+#        helpers.save_adjusted_model(ebm, ebm_data, "../updated_ebm.pkl")
+#        st.success("Model saved to ../updated_ebm.pkl")
 
