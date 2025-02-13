@@ -1,6 +1,9 @@
 import streamlit as st
 import dashboard_helpers as helpers
 
+ebm_path = "ebm_heloc.pkl"
+test_data_path = "heloc_test.csv"
+
 st.set_page_config(
     page_title="Shape Function Dashboard",
     layout="wide",
@@ -8,7 +11,7 @@ st.set_page_config(
 
 # Initialize session state for 'ebm_data'
 if "ebm_data" not in st.session_state:
-    st.session_state.ebm, st.session_state.ebm_data = helpers.load_ebm_data("ebm_loan.pkl")
+    st.session_state.ebm, st.session_state.ebm_data = helpers.load_ebm_data(ebm_path)
 ebm = st.session_state.ebm
 ebm_data = st.session_state.ebm_data
 
@@ -23,12 +26,12 @@ feature_data = ebm_data[selected_feature]
 #st.subheader("AI Model Prediction Accuracy")
 col1, col2 = st.columns(2)
 with col1:
-    original_model_accuracy = helpers.calculate_model_accuracy(ebm, "loan_test_dataset.csv")
+    original_model_accuracy = helpers.calculate_model_accuracy(ebm, test_data_path)
     st.metric(label="AI Model Prediction Accuracy", value=f"{original_model_accuracy:.2%}")
 with col2:
     if feature_data["adjusted_visible"]:
         adjusted_ebm = helpers.update_term_scores(ebm, feature_data)
-        adjusted_model_accuracy = helpers.calculate_model_accuracy(adjusted_ebm, "loan_test_dataset.csv")
+        adjusted_model_accuracy = helpers.calculate_model_accuracy(adjusted_ebm, test_data_path)
         st.metric(label="Accuracy after Adjustment", value=f"{adjusted_model_accuracy:.2%}")
 
 # Plot the shape function

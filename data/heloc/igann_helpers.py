@@ -64,7 +64,7 @@ def load_fico_data():
     https://community.fico.com/s/explainable-machine-learning-challenge?tabset-158d9=3
     """
 
-    df = pd.read_csv('heloc_dataset.csv')
+    df = pd.read_csv('heloc_raw.csv')
 
     df = df.replace("?", "")
     df = df.replace(" ", "")
