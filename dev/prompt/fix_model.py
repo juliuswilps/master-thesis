@@ -17,9 +17,9 @@ def fix_model(
 
     # graph_as_text = edit_text(string)
 
-    # prompt = get_prompt(graph_as_text)
+    # prompts.py = get_prompt(graph_as_text)
     # Wie sehen caafe/ t2ebm prompts aus?
 
-    # response = api_call(prompt)
+    # response = api_call(prompts.py)
 
     # execute_response()

@@ -9,7 +9,7 @@ def get_prompt(
     ebm_graph: EBMGraph, data_description_unparsed=None, **kwargs
 ):
     """
-    Generates a prompt to identify and correct only the most significant domain knowledge anomaly in an EBM graph shape function.
+    Generates a prompts.py to identify and correct only the most significant domain knowledge anomaly in an EBM graph shape function.
 
     Parameters:
     ebm_graph (EBMGraph): The EBM graph object containing feature name, type, x-values, scores, and standard deviations.
