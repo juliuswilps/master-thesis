@@ -4,9 +4,8 @@ load_dotenv()
 from functions import describe_graph
 
 llm = "gpt-4o-mini"
-ebm = joblib.load("ebm_heloc.pkl")
+ebm = joblib.load("ebm-heloc.pkl")
 
-desc = describe_graph(llm, ebm, 0)
-
-print(desc)
-
+response = describe_graph(llm, ebm, 0)
+print(type(response))
+print(response)

@@ -99,19 +99,12 @@ def describe_graph(
     # Extract and parse the last response
     response_content = response[-1]["content"]
 
-    if isinstance(response_content, str):  # Ensure it's a string
-        try:
-            parsed_response = json.loads(response_content)
-            adjusted_scores = parsed_response.get("adjusted_scores", [])
-            reason = parsed_response.get("reason", "No explanation provided.")
-        except json.JSONDecodeError:
-            adjusted_scores = []
-            reason = "LLM response could not be parsed."
-    else:
-        adjusted_scores = []
-        reason = "Unexpected response format."
+    code = response_content.strip("```json").strip("```").strip()
+    parsed_response = json.loads(code)
+    adjusted_scores = parsed_response.get("adjusted_scores", [])
+    explanation = parsed_response.get("reason", "No explanation provided.")
 
-    return {"adjusted_scores": adjusted_scores, "reason": reason}
+    return {"adjusted_scores": adjusted_scores, "explanation": explanation}
 
 def describe_ebm(
     llm: Union[AbstractChatModel, str],

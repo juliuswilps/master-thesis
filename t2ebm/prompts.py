@@ -80,7 +80,7 @@ def describe_graph_cot(graph: str, num_sentences=3, **kwargs):
             "role": "user",
             "content": "Thanks. Based on your analysis, should this graph be adjusted to better align with domain knowledge? "
                        "If so, propose a new set of shape function scores that correct the issues. "
-                       "Respond in json format with two keys: 'adjusted_scores' (a list of new score values) and 'reason' (a brief explanation, max 3 sentences).",
+                       "Respond in JSON format with two keys: 'adjusted_scores' (a list of new score values) and 'reason' (a brief explanation, max 3 sentences).",
         },
         {"role": "assistant", "temperature": 0.7, "max_tokens": 2000},
     ]
