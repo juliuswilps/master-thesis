@@ -1,8 +1,8 @@
 import streamlit as st
 import dashboard_helpers as helpers
 
-ebm_path = "ebm_heloc.pkl"
-test_data_path = "heloc_test.csv"
+ebm_path = "ebm-loan.pkl"
+test_data_path = "loan-test-dataset.csv"
 
 st.set_page_config(
     page_title="Shape Function Dashboard",
@@ -26,11 +26,12 @@ feature_data = ebm_data[selected_feature]
 #st.subheader("AI Model Prediction Accuracy")
 col1, col2 = st.columns(2)
 with col1:
-    original_model_accuracy = helpers.calculate_model_accuracy(ebm, test_data_path)
+    current_ebm = helpers.update_term_scores(ebm, feature_data)
+    original_model_accuracy = helpers.calculate_model_accuracy(current_ebm, test_data_path)
     st.metric(label="AI Model Prediction Accuracy", value=f"{original_model_accuracy:.2%}")
 with col2:
     if feature_data["adjusted_visible"]:
-        adjusted_ebm = helpers.update_term_scores(ebm, feature_data)
+        adjusted_ebm = helpers.update_term_scores(ebm, feature_data, adjusted=True)
         adjusted_model_accuracy = helpers.calculate_model_accuracy(adjusted_ebm, test_data_path)
         st.metric(label="Accuracy after Adjustment", value=f"{adjusted_model_accuracy:.2%}")
 
@@ -59,7 +60,7 @@ with col3:
     if st.button("➡️ Next"):
         helpers.next_iteration(ebm_data, selected_feature)
 
-st.write(f"History: {feature_data['current_iteration'] + 1} / {len(feature_data['history'])}")
+st.write(f"History: {feature_data['current_iteration'] + 1} / {len(feature_data['y_vals'])}")
 
 # Buttons
 col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
@@ -73,7 +74,7 @@ with col3:
         st.rerun()
 with col2:
     if not feature_data["adjusted_visible"] and st.button("🛠️ Generate Adjusted Curve"):
-        helpers.generate_adjusted_graph(selected_feature, feature_data["feature_type"], feature_data["x_vals"], st.session_state)
+        helpers.generate_adjusted_graph(selected_feature, st.session_state)
         st.rerun()
 
 #with col4:

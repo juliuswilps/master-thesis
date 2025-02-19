@@ -9,6 +9,7 @@ from typing import Union
 from dotenv import load_dotenv
 load_dotenv()
 from t2ebm.graphs import extract_graph
+from functions import adjust_graph
 
 
 def load_model(file_path: str):
@@ -36,14 +37,13 @@ def load_ebm_data(file_path: str):
 
             ebm_data[graph.feature_name] = {
                 "x_vals": x_values,
-                "y_vals": graph.scores,
+                "y_vals": [list(graph.scores)],
                 "adjusted_y_vals": [],
                 "adjusted_visible": False,
                 "stds": graph.stds,
                 "explanation": f"Graph for {graph.feature_name}",
                 "feature_type": graph.feature_type,
                 "feature_name": graph.feature_name,
-                "history": [list(graph.scores)],
                 "current_iteration": 0,
             }
         return ebm, ebm_data
@@ -57,7 +57,7 @@ def create_shape_function_plot(feature_data):
     # Create data for plotting
     plot_data = pd.DataFrame({
         "X": feature_data["x_vals"],
-        "Influence Curve": feature_data["y_vals"],
+        "Influence Curve": feature_data["y_vals"][feature_data["current_iteration"]],
     })
 
     # Add the adjusted shape function if visible
@@ -94,33 +94,28 @@ def create_shape_function_plot(feature_data):
 
 
 # Helper function to generate adjusted graph
-def generate_adjusted_graph(feature_name: str, feature_type: str, x_values, state):
+def generate_adjusted_graph(feature_name: str, state):
     """
     Generate adjusted shape values for the selected feature.
 
     Args:
         feature_name (str): Name of the selected feature.
-        feature_type (str): Type of the feature (nominal or continuous).
-        x_values (list): X-values of the feature.
     """
-    print(state["ebm_data"][feature_name]["y_vals"])
-    # Static demo values for now
-    if feature_type == "continuous":
-        # Use a sine wave to make the adjusted graph visually distinct
-        adjusted_values = np.sin(2 * np.pi * np.array(x_values)) + 0.5
-    elif feature_type == "nominal":
-        adjusted_values = [1.5, -0.5, 0.5]  # Example for nominal data
-    else:
-        # Fallback for unknown features
-        adjusted_values = [0] * len(x_values)  # Default fallback
-
     if feature_name == "Credit Score":
-        adjusted_values  = [-y for y in state["ebm_data"][feature_name]["y_vals"]]
+        adjusted_scores = [-y for y in state["ebm_data"][feature_name]["y_vals"][state["ebm_data"][feature_name]["current_iteration"]]]
         explanation = "I inverted the y-values because the original shape function contradicted domain knowledge by assigning lower probabilities of loan repayment to higher credit scores. In reality, a higher credit score should indicate a lower risk of default, meaning the function should have positive values for high scores and negative values for low scores. This simple inversion corrects the direction while preserving the relative differences between values."
         state["ebm_data"][feature_name]["explanation"] = explanation
 
+    else:
+        llm = "gpt-4o-mini"
+        ebm = state.ebm
+        idx = ebm.feature_names_in_.index(feature_name)
+
+        adjusted_scores, explanation = adjust_graph(llm, ebm, idx)
+
     # Save adjusted values to session state
-    state["ebm_data"][feature_name]["adjusted_y_vals"] = adjusted_values
+    state["ebm_data"][feature_name]["adjusted_y_vals"] = adjusted_scores
+    state["ebm_data"][feature_name]["explanation"] = explanation
     state["ebm_data"][feature_name]["adjusted_visible"] = True
 
 def calculate_model_accuracy(ebm, test_data_path):
@@ -155,7 +150,7 @@ def calculate_model_accuracy(ebm, test_data_path):
     return accuracy
 
 
-def update_term_scores(ebm, feature_data):
+def update_term_scores(ebm, feature_data, adjusted=False):
     """
     Update the term_scores_ of the EBM model with adjusted values from ebm_data.
 
@@ -166,11 +161,14 @@ def update_term_scores(ebm, feature_data):
     Returns:
         Updated EBM model with adjusted term_scores_.
     """
-    adjusted_ebm = ebm.copy()
+    updated_ebm = ebm.copy()
     idx = ebm.feature_names_in_.index(feature_data["feature_name"])
-    adjusted_ebm.term_scores_[idx][1:-1] = feature_data["adjusted_y_vals"]  # preserve missing and unknown bins
+    if adjusted:
+        updated_ebm.term_scores_[idx][1:-1] = feature_data["adjusted_y_vals"]  # preserve missing and unknown bins
+    else:
+        updated_ebm.term_scores_[idx][1:-1] = feature_data["y_vals"][feature_data["current_iteration"]]
 
-    return adjusted_ebm
+    return updated_ebm
 
 def keep_changes(ebm_data: dict, selected_feature: str):
     """
@@ -181,14 +179,9 @@ def keep_changes(ebm_data: dict, selected_feature: str):
         selected_feature (str): The selected feature name.
     """
     feature_data = ebm_data[selected_feature]
-    feature_data["history"].append(list(feature_data["adjusted_y_vals"]))
+    feature_data["y_vals"].append(list(feature_data["adjusted_y_vals"]))
     feature_data["current_iteration"] += 1
-    feature_data["y_vals"] = list(feature_data["adjusted_y_vals"])
     feature_data["adjusted_visible"] = False
-
-    """state["ebm_data"][feature]["y_vals"] = state["ebm_data"][feature]["adjusted_y_vals"]
-    state["ebm_data"][feature]["adjusted_y_vals"] = []
-    state["ebm_data"][feature]["adjusted_visible"] = False"""
 
 
 def discard_changes(ebm_data: dict, selected_feature: str):
@@ -218,23 +211,21 @@ def save_adjusted_model(
     """
     for feature_name, feature_data in ebm_data.items():
         idx = ebm.feature_names_in_.index(feature_name)
-        ebm.term_scores_[idx][1:-1] = feature_data["y_vals"] # preserve missing and unknown bins
+        ebm.term_scores_[idx][1:-1] = feature_data["y_vals"][feature_data["current_iteration"]] # preserve missing and unknown bins
     joblib.dump(ebm, save_path)
 
 def previous_iteration(ebm_data: dict, selected_feature: str):
     feature_data = ebm_data[selected_feature]
     if feature_data["current_iteration"] > 0:
         feature_data["current_iteration"] -= 1
-        feature_data["y_vals"] = feature_data["history"][feature_data["current_iteration"]]
         st.rerun()
     else:
         st.warning("No earlier versions available!")
 
 def next_iteration(ebm_data: dict, selected_feature: str):
     feature_data = ebm_data[selected_feature]
-    if feature_data["current_iteration"] < len(feature_data["history"]) - 1:
+    if feature_data["current_iteration"] < len(feature_data["y_vals"]) - 1:
         feature_data["current_iteration"] += 1
-        feature_data["y_vals"] = feature_data["history"][feature_data["current_iteration"]]
         st.rerun()
     else:
         st.warning("No later versions available!")
