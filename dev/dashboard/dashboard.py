@@ -1,8 +1,9 @@
 import streamlit as st
 import dashboard_helpers as helpers
 
-ebm_path = "ebm-loan.pkl"
-test_data_path = "loan-test-dataset.csv"
+ebm_path = "ebm-heloc.pkl"
+description_path = "heloc-description.json"
+test_data_path = "heloc-test.csv"
 
 st.set_page_config(
     page_title="Shape Function Dashboard",
@@ -21,6 +22,14 @@ ebm_data = st.session_state.ebm_data
 # Dropdown menu for feature selection
 selected_feature = st.selectbox("Select Factor", list(ebm_data.keys()))
 feature_data = ebm_data[selected_feature]
+
+description = helpers.load_description(feature_data, description_path)
+st.text_area(
+    "Factor Description",
+    description,
+    height=75,
+    disabled=True,
+)
 
 # Display accuracy
 #st.subheader("AI Model Prediction Accuracy")

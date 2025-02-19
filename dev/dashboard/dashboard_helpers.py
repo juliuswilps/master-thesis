@@ -1,5 +1,6 @@
 import joblib
 import numpy as np
+import json
 import pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -48,6 +49,11 @@ def load_ebm_data(file_path: str):
             }
         return ebm, ebm_data
 
+def load_description(feature_data: dict, filepath: str):
+    with open(filepath, "r") as f:
+        data_description = json.load(f)
+        feature_description = data_description[feature_data["feature_name"]]
+        return feature_description
 
 def create_shape_function_plot(feature_data):
     # Set x_key and x_label for both feature types
