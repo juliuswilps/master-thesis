@@ -45,9 +45,6 @@ Each codeblock ends with ```end and starts with "```python"
 Codeblock:
 """
 
-# insert prmmpt into messages
+# insert prompt into messages
 
 # API call
-
-# handle api response
-code = code.replace("```python", "").replace("```", "").replace("<end>", "")

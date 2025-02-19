@@ -60,12 +60,13 @@ The graph is provided in the following format:
     prompt += task_description
     return prompt
 
-def describe_graph_cot(graph: str, num_sentences=3, **kwargs):
+def describe_graph_cot(graph: str, num_scores: int, num_sentences=3, **kwargs):
     """Use chain-of-thought reasoning to elicit a description of a graph and propose adjustments if needed.
 
     Returns:
         dict: A structured response containing adjusted shape function scores and a brief explanation.
     """
+
     messages = [
         {"role": "system", "content": graph_system_msg()},
         {"role": "user", "content": describe_graph(graph, **kwargs)},
@@ -78,14 +79,19 @@ def describe_graph_cot(graph: str, num_sentences=3, **kwargs):
         {"role": "assistant", "temperature": 0.7, "max_tokens": 2000},
         {
             "role": "user",
-            "content": "Thanks. Based on your analysis, should this graph be adjusted to better align with domain knowledge? "
-                       "If so, propose a new set of shape function scores that correct the issues. "
-                       "Respond in JSON format with two keys: 'adjusted_scores' (a list of new score values) and 'reason' (a brief explanation, max 3 sentences).",
+            "content": (
+                f"Thanks. Based on your analysis, should this graph be adjusted to better align with domain knowledge? "
+                f"If so, propose a new set of shape function scores that correct the issues. "
+                f"Respond in JSON format with two keys: 'adjusted_scores' (a list of {num_scores} new score values) "
+                f"and 'reason' (a brief explanation, max {num_sentences} sentences). "
+                f"Ensure that 'adjusted_scores' has exactly {num_scores} values to match the original graph's shape function scores."
+            ),
         },
-        {"role": "assistant", "temperature": 0.7, "max_tokens": 2000},
+        {"role": "assistant", "temperature": 0.7, "max_tokens": 5000},
     ]
 
     return messages
+
 
 
 def describe_graph_cot_old(graph, num_sentences=7, **kwargs):

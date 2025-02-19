@@ -24,31 +24,7 @@ import json
 ###################################################################################################
 # Talk to the EBM about other things than graphs.
 ###################################################################################################
-
-
-def feature_importances_to_text(ebm: Union[ExplainableBoostingClassifier, ExplainableBoostingRegressor]):
-    """Convert the feature importances of an EBM to text.
-
-    Args:
-        ebm (_type_): The EBM.
-
-    Returns:
-        str: Textual representation of the feature importances.
-    """
-    feature_importances = ""
-    for feature_idx, feature_name in enumerate(ebm.feature_names_in_):
-        feature_importances += (
-            f"{feature_name}: {ebm.term_importances()[feature_idx]:.2f}\n"
-        )
-    return feature_importances
-
-
-################################################################################################################
-# Ask the LLM to perform high-level tasks directly on the EBM.
-################################################################################################################
-
-
-def describe_graph(
+def adjust_graph(
     llm: Union[AbstractChatModel, str],
     ebm: Union[ExplainableBoostingClassifier, ExplainableBoostingRegressor],
     feature_index: int,
@@ -66,21 +42,29 @@ def describe_graph(
         num_sentences (int, optional): The desired number of senteces for the description. Defaults to 7.
 
     Returns:
-        str:  The description of the graph.
+        dict:  The description of the graph.
     """
 
     # llm setup
     llm = t2ebm.llm.setup(llm)
+
+    print(f"Feature to adjust: {ebm.feature_names_in_[feature_index]}")
+    print(f"ebm term scores: {len(ebm.term_scores_[feature_index][1:-1])}")
 
     # extract the graph from the EBM
     extract_kwargs = list(inspect.signature(extract_graph).parameters)
     extract_dict = {k: kwargs[k] for k in dict(kwargs) if k in extract_kwargs}
     graph = extract_graph(ebm, feature_index, **extract_dict)
 
+    num_scores = len(graph.scores)
+    print(f"graph.scores: {num_scores}")
+
     # convert the graph to text
     to_text_kwargs = list(inspect.signature(graph_to_text).parameters)
     to_text_dict = {k: kwargs[k] for k in dict(kwargs) if k in to_text_kwargs}
-    graph = graph_to_text(graph, **to_text_dict)
+    graph_string = graph_to_text(graph, **to_text_dict)
+
+    print(f"graph_string: {graph_string}")
 
     # get a cot sequence of messages to describe the graph
     llm_descripe_kwargs = list(inspect.signature(prompts.describe_graph_cot).parameters)
@@ -89,7 +73,7 @@ def describe_graph(
     )
     llm_descripe_dict = {k: kwargs[k] for k in dict(kwargs) if k in llm_descripe_kwargs}
     messages = prompts.describe_graph_cot(
-        graph, num_sentences=num_sentences, **llm_descripe_dict
+        graph_string, num_scores=num_scores, num_sentences=num_sentences, **llm_descripe_dict
     )
 
     # execute the prompt
@@ -97,14 +81,37 @@ def describe_graph(
 
     # the last message contains the summary
     # Extract and parse the last response
-    response_content = response[-1]["content"]
 
+    response_content = response[-1]["content"]  # Get the last response
     code = response_content.strip("```json").strip("```").strip()
+    print(f"response: {code}")
     parsed_response = json.loads(code)
+
+    # Extract values safely
     adjusted_scores = parsed_response.get("adjusted_scores", [])
     explanation = parsed_response.get("reason", "No explanation provided.")
 
-    return {"adjusted_scores": adjusted_scores, "explanation": explanation}
+    # Ensure correct length
+    if len(adjusted_scores) != num_scores:
+        print(f"Warning: Adjusted scores length ({len(adjusted_scores)}) does not match expected ({num_scores})")
+
+        # If too many values, truncate
+        if len(adjusted_scores) > num_scores:
+            adjusted_scores = adjusted_scores[:num_scores]
+        # If too few values, pad with the last known value (or 0)
+        else:
+            last_value = adjusted_scores[-1] if adjusted_scores else 0
+            adjusted_scores.extend([last_value] * (num_scores - len(adjusted_scores)))
+
+    print(f"len(adjusted_scores) final:{len(adjusted_scores)}")
+
+    return adjusted_scores, explanation
+
+
+################################################################################################################
+# Ask the LLM to perform high-level tasks directly on the EBM.
+################################################################################################################
+
 
 def describe_ebm(
     llm: Union[AbstractChatModel, str],
