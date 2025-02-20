@@ -136,47 +136,6 @@ def simplify_graph(graph: EBMGraph, min_variation_per_cent: float = 0.0):
         graph.feature_name, graph.feature_type, new_x_vals, new_scores, new_stds
     )
 
-
-def plot_graph(graph: EBMGraph):
-    """Plot a graph.
-
-    Args:
-        graph (EBMGraph): The graph.
-    """
-    x_vals, scores, stds = graph.x_vals, graph.scores, graph.stds
-    if graph.feature_type == "continuous":
-        x, y, y_lower, y_upper = [], [], [], []
-        for idx, bin in enumerate(x_vals):
-            if bin[0] == -np.inf or bin[1] == np.inf:
-                continue
-            # left part of the bin
-            x.append(bin[0] + 1e-12)
-            y.append(scores[idx])
-            y_lower.append(scores[idx] - stds[idx])
-            y_upper.append(scores[idx] + stds[idx])
-            # right part of the bin
-            x.append(bin[1])
-            y.append(scores[idx])
-            y_lower.append(scores[idx] - stds[idx])
-            y_upper.append(scores[idx] + stds[idx])
-        # plot
-        fig = plt.figure()
-        plt.plot(x, y)
-        plt.fill_between(x, y_lower, y_upper, alpha=0.2)
-    elif (
-        graph.feature_type == "nominal"
-        or graph.feature_type == "boolean"
-        or graph.feature_type == "categorical"
-    ):
-        # plot bins for the categorical features
-        fig = plt.figure()
-        plt.bar(x_vals, scores, yerr=stds)
-    else:
-        raise Exception(f"Unknown graph feature type {graph.feature_type}.")
-    plt.xlabel(graph.feature_name)
-    plt.title(f"{graph.feature_name} ({graph.feature_type})")
-
-
 def xy_to_json_(x_vals, y_vals):
     """Convert a sequence of x_vals and y_vals to a json string"""
     # continuous features

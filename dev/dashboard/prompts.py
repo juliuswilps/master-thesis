@@ -41,9 +41,7 @@ def describe_graph(
 The graph is provided in the following format:
     - The name of the feature depicted in the graph
     - The type of the feature (continuous, categorical, or boolean)
-    - Mean values
-    - Lower bounds of confidence interval (optional)
-    - Upper bounds of confidence interval (optional)\n\n"""
+    - Mean values\n\n"""
 
     # the graph
     prompt += f"Here is the graph:\n\n{graph}\n\n"

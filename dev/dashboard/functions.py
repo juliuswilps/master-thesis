@@ -62,7 +62,7 @@ def adjust_graph(
     # convert the graph to text
     to_text_kwargs = list(inspect.signature(graph_to_text).parameters)
     to_text_dict = {k: kwargs[k] for k in dict(kwargs) if k in to_text_kwargs}
-    graph_string = graph_to_text(graph, **to_text_dict)
+    graph_string = graph_to_text(graph, confidence_bounds=False, **to_text_dict)
 
     print(f"graph_string: {graph_string}")
 
