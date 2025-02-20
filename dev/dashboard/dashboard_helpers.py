@@ -1,5 +1,4 @@
 import joblib
-import numpy as np
 import json
 import pandas as pd
 import streamlit as st
@@ -10,7 +9,7 @@ from typing import Union
 from dotenv import load_dotenv
 load_dotenv()
 from t2ebm.graphs import extract_graph
-from functions import adjust_graph
+from dev.t2ebm.functions import adjust_graph
 
 
 def load_model(file_path: str):
@@ -41,7 +40,7 @@ def load_ebm_data(file_path: str):
                 "y_vals": [list(graph.scores)],
                 "adjusted_y_vals": [],
                 "adjusted_visible": False,
-                "stds": graph.stds,
+                #"stds": graph.stds,
                 "explanation": f"Graph for {graph.feature_name}",
                 "feature_type": graph.feature_type,
                 "feature_name": graph.feature_name,

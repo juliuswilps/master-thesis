@@ -157,7 +157,7 @@ def graph_to_text(
     y_axis_precision="auto",
     confidence_bounds=True,
     confidence_level=0.95,
-    max_tokens=3000,
+    max_tokens=10000,
 ):
     """Convert an EBMGraph to text. This is the text that we then pass to the LLM.
 
