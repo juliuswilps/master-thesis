@@ -1,7 +1,7 @@
-import helpers
+import api_helpers
 
 def adjust_graph(feature_data: dict):
-    llm = helpers.setup()
+    llm = api_helpers.setup()
 
     graph_dict = dict(zip(feature_data["x_vals"], feature_data["y_vals"][feature_data["current_iteration"]]))
 
@@ -9,7 +9,7 @@ def adjust_graph(feature_data: dict):
     messages = [
         {
             "role": "system",
-            "content": helpers.get_system_msg(graph_dict)
+            "content": api_helpers.get_system_msg(graph_dict)
         },
         {
             "role": "user",

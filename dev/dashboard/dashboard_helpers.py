@@ -6,10 +6,7 @@ import plotly.express as px
 from interpret.glassbox import ExplainableBoostingClassifier, ExplainableBoostingRegressor
 from sklearn.metrics import accuracy_score, r2_score
 from typing import Union
-from dotenv import load_dotenv
-load_dotenv()
-from t2ebm.graphs import extract_graph
-from dev.t2ebm.functions import adjust_graph
+from loading_helpers import get_x_vals
 
 
 def load_model(file_path: str):
@@ -25,27 +22,22 @@ def load_ebm_data(file_path: str):
     if isinstance(ebm, (ExplainableBoostingClassifier, ExplainableBoostingRegressor)):
         ebm_data = {}
 
-        for i, graph in enumerate(
-                [extract_graph(ebm, idx) for idx in range(len(ebm.feature_names_in_))]
-        ):
-            if graph.feature_type == "continuous":
-                x_values = [(interval[0] + interval[1]) / 2 for interval in graph.x_vals]
-            elif graph.feature_type == "nominal":
-                x_values = graph.x_vals
-            else:
-                raise ValueError(f"Unknown feature type: {graph.feature_type}")
+        for idx, feature_name in enumerate(ebm.feature_names_in_):
+            feature_type = ebm.feature_types_in_[idx]
+            scores = ebm.term_scores_[idx][1:-1] # Drop missing and unknown bins
+            x_vals = get_x_vals(ebm, idx)
 
-            ebm_data[graph.feature_name] = {
-                "x_vals": x_values,
-                "y_vals": [list(graph.scores)],
+            ebm_data[feature_name] = {
+                "x_vals": x_vals,
+                "y_vals": [list(scores)],
                 "adjusted_y_vals": [],
                 "adjusted_visible": False,
-                #"stds": graph.stds,
-                "explanation": f"Graph for {graph.feature_name}",
-                "feature_type": graph.feature_type,
-                "feature_name": graph.feature_name,
+                "explanation": f"Graph for {feature_name}",
+                "feature_type": feature_type,
+                "feature_name": feature_name,
                 "current_iteration": 0,
             }
+
         return ebm, ebm_data
 
 def load_description(feature_data: dict, filepath: str):
@@ -234,3 +226,34 @@ def next_iteration(ebm_data: dict, selected_feature: str):
         st.rerun()
     else:
         st.warning("No later versions available!")
+
+"""
+def load_ebm_data_old(file_path: str):
+    ebm = joblib.load(file_path)
+
+    if isinstance(ebm, (ExplainableBoostingClassifier, ExplainableBoostingRegressor)):
+        ebm_data = {}
+
+        for i, graph in enumerate(
+                [extract_graph(ebm, idx) for idx in range(len(ebm.feature_names_in_))]
+        ):
+            if graph.feature_type == "continuous":
+                x_values = [(interval[0] + interval[1]) / 2 for interval in graph.x_vals]
+            elif graph.feature_type == "nominal":
+                x_values = graph.x_vals
+            else:
+                raise ValueError(f"Unknown feature type: {graph.feature_type}")
+
+            ebm_data[graph.feature_name] = {
+                "x_vals": x_values,
+                "y_vals": [list(graph.scores)],
+                "adjusted_y_vals": [],
+                "adjusted_visible": False,
+                #"stds": graph.stds,
+                "explanation": f"Graph for {graph.feature_name}",
+                "feature_type": graph.feature_type,
+                "feature_name": graph.feature_name,
+                "current_iteration": 0,
+            }
+        return ebm, ebm_data
+"""
