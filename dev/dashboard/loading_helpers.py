@@ -22,21 +22,3 @@ def get_x_vals (
         x_vals = ebm.bins_[feature_index][0] # TODO: Check categorical features
 
     return x_vals
-
-
-
-
-
-
-    """    
-    if feature_type == "continuous":
-        x_vals = convert_to_intervals(ebm.bins_[feature_index][0])
-        # feature bounds apply to continuous features only
-        if use_feature_bounds:
-            x_vals[0] = (ebm.feature_bounds_[feature_index][0], x_vals[0][1])
-            x_vals[-1] = (x_vals[-1][0], ebm.feature_bounds_[feature_index][1])
-    elif feature_type == "nominal":
-        x_vals = ebm.bins_[feature_index][
-            0
-        ]
-    """

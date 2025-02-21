@@ -9,13 +9,6 @@ from typing import Union
 from loading_helpers import get_x_vals
 
 
-def load_model(file_path: str):
-    ebm = joblib.load(file_path)
-    if isinstance(ebm, (ExplainableBoostingClassifier, ExplainableBoostingRegressor)):
-        return ebm
-    raise TypeError("The loaded object is not an Explainable Boosting Machine.")
-
-
 def load_ebm_data(file_path: str):
     ebm = joblib.load(file_path)
 
@@ -39,6 +32,8 @@ def load_ebm_data(file_path: str):
             }
 
         return ebm, ebm_data
+
+    raise TypeError("The loaded object is not an Explainable Boosting Machine.")
 
 def load_description(feature_data: dict, filepath: str):
     with open(filepath, "r") as f:
@@ -226,6 +221,14 @@ def next_iteration(ebm_data: dict, selected_feature: str):
         st.rerun()
     else:
         st.warning("No later versions available!")
+
+"""
+def load_model(file_path: str):
+    ebm = joblib.load(file_path)
+    if isinstance(ebm, (ExplainableBoostingClassifier, ExplainableBoostingRegressor)):
+        return ebm
+    raise TypeError("The loaded object is not an Explainable Boosting Machine.")
+"""
 
 """
 def load_ebm_data_old(file_path: str):
