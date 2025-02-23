@@ -9,25 +9,30 @@ from typing import Union
 from loading_helpers import get_x_vals
 
 
-def load_ebm_data(file_path: str):
-    ebm = joblib.load(file_path)
+def load_ebm_data(ebm_path: str, description_path: str = ""):
+    ebm = joblib.load(ebm_path)
 
     if isinstance(ebm, (ExplainableBoostingClassifier, ExplainableBoostingRegressor)):
         ebm_data = {}
+        descriptions = {}
+
+        if description_path:
+            with open(description_path, "r") as f:
+                descriptions = json.load(f)
 
         for idx, feature_name in enumerate(ebm.feature_names_in_):
             feature_type = ebm.feature_types_in_[idx]
-            scores = ebm.term_scores_[idx][1:-1] # Drop missing and unknown bins
+            scores = ebm.term_scores_[idx][1:-1]  # Drop missing and unknown bins
             x_vals = get_x_vals(ebm, idx)
 
             ebm_data[feature_name] = {
                 "x_vals": x_vals,
                 "y_vals": [list(scores)],
                 "adjusted_y_vals": [],
-                #"adjusted_visible": False,
                 "explanation": f"Graph for {feature_name}",
                 "feature_type": feature_type,
                 "feature_name": feature_name,
+                "feature_description": descriptions.get(feature_name),
                 "current_iteration": 0,
             }
 
@@ -35,11 +40,6 @@ def load_ebm_data(file_path: str):
 
     raise TypeError("The loaded object is not an Explainable Boosting Machine.")
 
-def load_description(feature_data: dict, filepath: str):
-    with open(filepath, "r") as f:
-        data_description = json.load(f)
-        feature_description = data_description[feature_data["feature_name"]]
-        return feature_description
 
 def create_shape_function_plot(feature_data, state):
     # Set x_key and x_label for both feature types
