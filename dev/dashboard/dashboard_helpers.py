@@ -24,7 +24,7 @@ def load_ebm_data(file_path: str):
                 "x_vals": x_vals,
                 "y_vals": [list(scores)],
                 "adjusted_y_vals": [],
-                "adjusted_visible": False,
+                #"adjusted_visible": False,
                 "explanation": f"Graph for {feature_name}",
                 "feature_type": feature_type,
                 "feature_name": feature_name,
@@ -41,7 +41,7 @@ def load_description(feature_data: dict, filepath: str):
         feature_description = data_description[feature_data["feature_name"]]
         return feature_description
 
-def create_shape_function_plot(feature_data):
+def create_shape_function_plot(feature_data, state):
     # Set x_key and x_label for both feature types
     x_key = "X"
     x_label = "Category" if feature_data["feature_type"] == "nominal" else feature_data["feature_name"]
@@ -53,7 +53,8 @@ def create_shape_function_plot(feature_data):
     })
 
     # Add the adjusted shape function if visible
-    if feature_data["adjusted_visible"]:
+    #if feature_data["adjusted_visible"]:
+    if state["adjusted_visible"]:
         plot_data["Adjusted Influence Curve"] = feature_data["adjusted_y_vals"]
 
     # Select plot type based on feature type
@@ -93,12 +94,15 @@ def generate_adjusted_graph(feature_name: str, state):
     Args:
         feature_name (str): Name of the selected feature.
     """
-    if feature_name == "Credit Score":
-        adjusted_scores = [-y for y in state["ebm_data"][feature_name]["y_vals"][state["ebm_data"][feature_name]["current_iteration"]]]
-        explanation = "I inverted the y-values because the original shape function contradicted domain knowledge by assigning lower probabilities of loan repayment to higher credit scores. In reality, a higher credit score should indicate a lower risk of default, meaning the function should have positive values for high scores and negative values for low scores. This simple inversion corrects the direction while preserving the relative differences between values."
-        state["ebm_data"][feature_name]["explanation"] = explanation
 
-    else:
+    adjusted_scores = [-y for y in state["ebm_data"][feature_name]["y_vals"][state["ebm_data"][feature_name]["current_iteration"]]]
+    explanation = "I inverted the y-values because the original shape function contradicted domain knowledge by assigning lower probabilities of loan repayment to higher credit scores. In reality, a higher credit score should indicate a lower risk of default, meaning the function should have positive values for high scores and negative values for low scores. This simple inversion corrects the direction while preserving the relative differences between values."
+
+    state["ebm_data"][feature_name]["adjusted_y_vals"] = adjusted_scores
+    state["ebm_data"][feature_name]["explanation"] = explanation
+    state["adjusted_visible"] = True
+
+    """else:
         llm = "gpt-4o-mini"
         ebm = state.ebm
         idx = ebm.feature_names_in_.index(feature_name)
@@ -108,7 +112,8 @@ def generate_adjusted_graph(feature_name: str, state):
     # Save adjusted values to session state
     state["ebm_data"][feature_name]["adjusted_y_vals"] = adjusted_scores
     state["ebm_data"][feature_name]["explanation"] = explanation
-    state["ebm_data"][feature_name]["adjusted_visible"] = True
+    #state["ebm_data"][feature_name]["adjusted_visible"] = True
+    state["adjusted_visible"] = True"""
 
 def calculate_model_accuracy(ebm, test_data_path):
     """
@@ -162,7 +167,7 @@ def update_term_scores(ebm, feature_data, adjusted=False):
 
     return updated_ebm
 
-def keep_changes(ebm_data: dict, selected_feature: str):
+def keep_changes(ebm_data: dict, selected_feature: str, state):
     """
     Keeps the adjusted shape function and updates the original function with the adjusted one.
 
@@ -173,10 +178,12 @@ def keep_changes(ebm_data: dict, selected_feature: str):
     feature_data = ebm_data[selected_feature]
     feature_data["y_vals"].append(list(feature_data["adjusted_y_vals"]))
     feature_data["current_iteration"] += 1
-    feature_data["adjusted_visible"] = False
+    #feature_data["adjusted_visible"] = False
+    state["adjusted_visible"] = False
 
 
-def discard_changes(ebm_data: dict, selected_feature: str):
+
+def discard_changes(ebm_data: dict, selected_feature: str, state):
     """
     Discards the adjusted changes and reverts to the original shape function.
 
@@ -185,7 +192,8 @@ def discard_changes(ebm_data: dict, selected_feature: str):
         state (dict): The session state.
     """
     ebm_data[selected_feature]["adjusted_y_vals"] = []
-    ebm_data[selected_feature]["adjusted_visible"] = False
+    #ebm_data[selected_feature]["adjusted_visible"] = False
+    state["adjusted_visible"] = False
 
 
 def save_adjusted_model(

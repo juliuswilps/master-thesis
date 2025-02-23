@@ -13,14 +13,16 @@ st.set_page_config(
 # Initialize session state for 'ebm_data'
 if "ebm_data" not in st.session_state:
     st.session_state.ebm, st.session_state.ebm_data = helpers.load_ebm_data(ebm_path)
+    st.session_state.adjusted_visible = False
 ebm = st.session_state.ebm
 ebm_data = st.session_state.ebm_data
+#adjusted_visible = st.session_state.adjusted_visible
 
 # Title
 # st.title("Feature Adjustment Dashboard")
 
 # Dropdown menu for feature selection
-selected_feature = st.selectbox("Select Factor", list(ebm_data.keys()))
+selected_feature = st.selectbox("Select Factor", list(ebm_data.keys()), disabled=st.session_state.adjusted_visible)
 feature_data = ebm_data[selected_feature]
 print(f"x len: {len(feature_data['x_vals'])}")
 print(f"y len: {len(feature_data['y_vals'][feature_data['current_iteration']])}")
@@ -42,7 +44,8 @@ with col1:
     original_model_accuracy = helpers.calculate_model_accuracy(current_ebm, test_data_path)
     st.metric(label="AI Model Prediction Accuracy", value=f"{original_model_accuracy:.2%}")
 with col2:
-    if feature_data["adjusted_visible"]:
+    #if feature_data["adjusted_visible"]:
+    if st.session_state.adjusted_visible:
         adjusted_ebm = helpers.update_term_scores(ebm, feature_data, adjusted=True)
         adjusted_model_accuracy = helpers.calculate_model_accuracy(adjusted_ebm, test_data_path)
         st.metric(label="Accuracy after Adjustment", value=f"{adjusted_model_accuracy:.2%}")
@@ -50,12 +53,12 @@ with col2:
 # Plot the shape function
 col1, col2 = st.columns([3, 1])
 with col1:
-    fig = helpers.create_shape_function_plot(feature_data)
+    fig = helpers.create_shape_function_plot(feature_data, st.session_state)
     st.plotly_chart(fig, use_container_width=True)
 
 # Explanation text box
 with col2:
-    explanation_text = feature_data["explanation"] if feature_data["adjusted_visible"] else "This is where explanations for generated adjusted graphs will appear."
+    explanation_text = feature_data["explanation"] if st.session_state.adjusted_visible else "This is where explanations for generated adjusted graphs will appear."
     st.text_area(
         "Explanation for Suggested Adjustment",
         explanation_text,
@@ -77,15 +80,15 @@ st.write(f"History: {feature_data['current_iteration'] + 1} / {len(feature_data[
 # Buttons
 col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
 with col1:
-    if feature_data["adjusted_visible"] and st.button("✅ Keep Adjustment"):
-        helpers.keep_changes(ebm_data, selected_feature)
+    if st.session_state.adjusted_visible and st.button("✅ Keep Adjustment"):
+        helpers.keep_changes(ebm_data, selected_feature, st.session_state)
         st.rerun()
 with col3:
-    if feature_data["adjusted_visible"] and st.button("❌ Discard Adjustment"):
-        helpers.discard_changes(ebm_data, selected_feature)
+    if st.session_state.adjusted_visible and st.button("❌ Discard Adjustment"):
+        helpers.discard_changes(ebm_data, selected_feature, st.session_state)
         st.rerun()
 with col2:
-    if not feature_data["adjusted_visible"] and st.button("🛠️ Generate Adjusted Curve"):
+    if not st.session_state.adjusted_visible and st.button("🛠️ Generate Adjusted Curve"):
         helpers.generate_adjusted_graph(selected_feature, st.session_state)
         st.rerun()
 
