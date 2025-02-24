@@ -1,8 +1,9 @@
 from typing import Union
 from interpret.glassbox import ExplainableBoostingClassifier, ExplainableBoostingRegressor
 from interpret.glassbox._ebm._utils import convert_to_intervals
+from scipy.interpolate import interp1d
 
-def get_xy_vals (
+def get_x_vals (
         ebm: Union[ExplainableBoostingClassifier, ExplainableBoostingRegressor],
         feature_index: int,
     ):
@@ -16,17 +17,17 @@ def get_xy_vals (
             bins[-1] = (bins[-1][0], ebm.feature_bounds_[feature_index][-1])
 
         # Calculate midpoints
-        midpoints = [(bin[0] + bin[1]) / 2 for bin in bins]
+        x_vals = [(bin[0] + bin[1]) / 2 for bin in bins]
 
-        scores = ebm.term_scores_[feature_index][1:-1] # drop missing/unknown bins
+        #y_vals = ebm.term_scores_[feature_index][1:-1] # drop missing/unknown bins
 
-        x_vals, y_vals = simplify_graph(midpoints, scores)
+        #x_vals, y_vals = simplify_graph(x_vals, y_vals)
 
     else: # categorical features
         x_vals = ebm.bins_[feature_index][0] # TODO: Check categorical features
-        y_vals = ebm.term_scores_[feature_index][1:-1]
+        #y_vals = ebm.term_scores_[feature_index][1:-1]
 
-    return x_vals, y_vals
+    return x_vals
 
 def simplify_graph(
         x_vals: list,
@@ -70,7 +71,17 @@ def simplify_graph(
             new_x_vals.append(x_vals[i])
             new_y_vals.append(curr_y)
 
+    """if len(x_vals) != len(new_x_vals) or len(y_vals) != len(new_y_vals):
+        print(f"Graph was simplified. \nOriginal x: {len(x_vals)} | New x: {len(new_x_vals)} \nOriginal y: {len(x_vals)} | New y: {len(new_x_vals)}")
+    else:
+        print("Graph was NOT simplified")"""
+
     return new_x_vals, new_y_vals
+
+def interpolate_scores(x_simple, y_simple, x_complex):
+    interp_func = interp1d(x_simple, y_simple, kind='linear', fill_value="extrapolate")
+    y_complex = interp_func(x_complex)
+    return y_complex
 
 def get_shape_function_bins(ebm, feature_index, min_variation_pct=0.01):
     """
