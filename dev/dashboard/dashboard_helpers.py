@@ -7,6 +7,7 @@ from interpret.glassbox import ExplainableBoostingClassifier, ExplainableBoostin
 from sklearn.metrics import accuracy_score, r2_score
 from typing import Union
 from loading_helpers import get_x_vals
+from adjust_graph import adjust_graph
 
 
 def load_ebm_data(ebm_path: str, description_path: str = ""):
@@ -86,8 +87,20 @@ def create_shape_function_plot(feature_data, state):
     return fig
 
 
+def generate_adjusted_graph(ebm_data, selected_feature, state):
+    feature_data = ebm_data[selected_feature]
+
+    adjusted_scores, explanation = adjust_graph(feature_data)
+
+    print(f"adjusted_scores: {adjusted_scores}")
+    print(f"explanation: {explanation} ")
+
+    feature_data["adjusted_y_vals"] = adjusted_scores
+    feature_data["explanation"] = explanation
+    state["adjusted_visible"] = True
+
 # Helper function to generate adjusted graph
-def generate_adjusted_graph(feature_name: str, state):
+def generate_adjusted_graph1(feature_data, state):
     """
     Generate adjusted shape values for the selected feature.
 
@@ -95,11 +108,11 @@ def generate_adjusted_graph(feature_name: str, state):
         feature_name (str): Name of the selected feature.
     """
 
-    adjusted_scores = [-y for y in state["ebm_data"][feature_name]["y_vals"][state["ebm_data"][feature_name]["current_iteration"]]]
+    adjusted_scores = [-y for y in feature_data["y_vals"][feature_data["current_iteration"]]]
     explanation = "I inverted the y-values because the original shape function contradicted domain knowledge by assigning lower probabilities of loan repayment to higher credit scores. In reality, a higher credit score should indicate a lower risk of default, meaning the function should have positive values for high scores and negative values for low scores. This simple inversion corrects the direction while preserving the relative differences between values."
 
-    state["ebm_data"][feature_name]["adjusted_y_vals"] = adjusted_scores
-    state["ebm_data"][feature_name]["explanation"] = explanation
+    feature_data["adjusted_y_vals"] = adjusted_scores
+    feature_data["explanation"] = explanation
     state["adjusted_visible"] = True
 
     """else:
