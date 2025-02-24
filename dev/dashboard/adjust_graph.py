@@ -1,8 +1,8 @@
 import api_helpers
 
 
-def adjust_graph(feature_data: dict, model: str = "gpt-4o-mini"):
-    llm = api_helpers.setup()
+def adjust_graph(feature_data: dict, model: str = "o3-mini"):
+    client = api_helpers.setup()
 
     # Set domain and prediction target
     domain = "financial risk modeling"
@@ -25,7 +25,7 @@ def adjust_graph(feature_data: dict, model: str = "gpt-4o-mini"):
     ]
 
     # Send the request for the adjusted graph
-    completion = llm.chat.completions.create(
+    completion = client.chat.completions.create(
         model=model,
         messages=messages,
     )

@@ -6,7 +6,7 @@ import plotly.express as px
 from interpret.glassbox import ExplainableBoostingClassifier, ExplainableBoostingRegressor
 from sklearn.metrics import accuracy_score, r2_score
 from typing import Union
-from loading_helpers import get_x_vals
+from loading_helpers import get_x_vals, simplify_graph, interpolate_scores
 from adjust_graph import adjust_graph
 
 
@@ -91,14 +91,37 @@ def create_shape_function_plot(feature_data, state):
 def generate_adjusted_graph(ebm_data, selected_feature, state):
     feature_data = ebm_data[selected_feature]
 
-    adjusted_scores, explanation = adjust_graph(feature_data)
+    x_original = feature_data["x_vals"]
+    y_original = feature_data["y_vals"][feature_data["current_iteration"]]
 
-    print(f"adjusted_scores: {adjusted_scores}")
-    print(f"explanation: {explanation} ")
+    print(f"original: {len(feature_data['y_vals'][feature_data['current_iteration']])}")
 
-    feature_data["adjusted_y_vals"] = adjusted_scores
+    x_simple, y_simple = simplify_graph(x_original, y_original)
+
+    feature_data["x_vals"] = x_simple
+    feature_data["y_vals"][feature_data["current_iteration"]] = y_simple
+
+    print(f'simplified: {len(feature_data["y_vals"][feature_data["current_iteration"]])}')
+
+    adjusted_y_simple, explanation = adjust_graph(feature_data)
+
+    print(f'api response: {len(adjusted_y_simple)}')
+
+    #print(f"adjusted_scores: {adjusted_y_simple}")
+    #print(f"explanation: {explanation} ")
+
+    adjusted_y_interpolated = interpolate_scores(x_simple, adjusted_y_simple, x_original)
+
+    feature_data["adjusted_y_vals"] = adjusted_y_interpolated
+    feature_data["x_vals"] = x_original
+    feature_data["y_vals"][feature_data["current_iteration"]] = y_original
     feature_data["explanation"] = explanation
     state["adjusted_visible"] = True
+
+    print(f'final adjusted: {len(feature_data["adjusted_y_vals"])}')
+    print(f'final original: {len(feature_data["y_vals"][feature_data["current_iteration"]])}')
+
+
 
 # Helper function to generate adjusted graph
 def generate_adjusted_graph1(feature_data, state):
