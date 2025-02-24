@@ -6,7 +6,7 @@ import plotly.express as px
 from interpret.glassbox import ExplainableBoostingClassifier, ExplainableBoostingRegressor
 from sklearn.metrics import accuracy_score, r2_score
 from typing import Union
-from loading_helpers import get_x_vals
+from loading_helpers import get_x_vals, get_shape_function
 from adjust_graph import adjust_graph
 
 
@@ -25,6 +25,7 @@ def load_ebm_data(ebm_path: str, description_path: str = ""):
             feature_type = ebm.feature_types_in_[idx]
             scores = ebm.term_scores_[idx][1:-1]  # Drop missing and unknown bins
             x_vals = get_x_vals(ebm, idx)
+            #x_vals, y_vals, ebm = get_shape_function(ebm, idx)
 
             ebm_data[feature_name] = {
                 "x_vals": x_vals,
@@ -38,6 +39,7 @@ def load_ebm_data(ebm_path: str, description_path: str = ""):
             }
 
         return ebm, ebm_data
+
 
     raise TypeError("The loaded object is not an Explainable Boosting Machine.")
 
