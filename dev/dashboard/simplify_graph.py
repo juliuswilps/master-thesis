@@ -1,4 +1,4 @@
-def simplify_graph_adaptive(
+def simplify_point_graph(
         x_vals: list,
         y_vals: list,
         min_variation_pct: float = 0.01
@@ -40,4 +40,36 @@ def simplify_graph_adaptive(
             new_x_vals.append(x_vals[i])
             new_y_vals.append(curr_y)
 
-    return new_x_vals, new_y_val
+    return new_x_vals, new_y_vals
+
+def simplify_step_graph(x_edges, y_vals, min_variation_pct: float = 0.01):
+    total_variation = max(y_vals) - min(y_vals)
+
+    # Initialize new lists for the simplified x and y values
+    new_x_edges = [x_edges[0], x_edges[1]]  # Start with the first edge (feature bound)
+    new_y_vals = [y_vals[0]]    # Start with the first y-value
+
+    for i in range(1, len(y_vals)):
+        #print(f"i: {i}")
+        prev_y = new_y_vals[-1]
+        curr_y = y_vals[i]
+
+        # Calculate the relative difference
+        variation = abs(curr_y - prev_y) / total_variation
+        #print(variation)
+
+        if variation <= min_variation_pct:
+            # Merge bins by extending the previous bin's right edge
+            new_x_edges[-1] = x_edges[i + 1]  # Move right boundary of last bin
+        else:
+            # Start a new bin
+            new_x_edges.append(x_edges[i + 1])  # Keep this as a new left edge
+            new_y_vals.append(curr_y)
+
+        #print(f"new x: {new_x_edges}")
+        #print(f"new y: {new_y_vals}")
+
+    # Append the last edge unchanged (preserving feature bounds)
+    #new_x_edges.append(x_edges[-1])
+
+    return new_x_edges, new_y_vals

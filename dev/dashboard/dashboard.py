@@ -24,9 +24,7 @@ ebm_data = st.session_state.ebm_data
 # Dropdown menu for feature selection
 selected_feature = st.selectbox("Select Factor", list(ebm_data.keys()), disabled=st.session_state.adjusted_visible)
 feature_data = ebm_data[selected_feature]
-#print(f"x len: {len(feature_data['x_vals'])}")
-#print(f"y len: {len(feature_data['y_vals'][feature_data['current_iteration']])}")
-#print(feature_data)
+print(feature_data)
 
 #description = helpers.load_description(feature_data, description_path)
 st.text_area(

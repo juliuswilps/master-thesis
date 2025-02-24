@@ -6,7 +6,7 @@ import plotly.express as px
 from interpret.glassbox import ExplainableBoostingClassifier, ExplainableBoostingRegressor
 from sklearn.metrics import accuracy_score, r2_score
 from typing import Union
-from loading_helpers import get_x_vals, get_shape_function
+from loading_helpers import get_xy_vals
 from adjust_graph import adjust_graph
 
 
@@ -23,13 +23,11 @@ def load_ebm_data(ebm_path: str, description_path: str = ""):
 
         for idx, feature_name in enumerate(ebm.feature_names_in_):
             feature_type = ebm.feature_types_in_[idx]
-            scores = ebm.term_scores_[idx][1:-1]  # Drop missing and unknown bins
-            x_vals = get_x_vals(ebm, idx)
-            #x_vals, y_vals, ebm = get_shape_function(ebm, idx)
+            x_vals, y_vals =  get_xy_vals(ebm, idx)
 
             ebm_data[feature_name] = {
                 "x_vals": x_vals,
-                "y_vals": [list(scores)],
+                "y_vals": [list(y_vals)],
                 "adjusted_y_vals": [],
                 "explanation": f"Graph for {feature_name}",
                 "feature_type": feature_type,
