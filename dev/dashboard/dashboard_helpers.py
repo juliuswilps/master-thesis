@@ -88,66 +88,41 @@ def create_shape_function_plot(feature_data, state):
     return fig
 
 
-def generate_adjusted_graph(ebm_data, selected_feature, state, simplify = True, reasoning = False):
+def generate_adjusted_graph(ebm_data, selected_feature, state, simplify = False, reasoning = False):
     feature_data = ebm_data[selected_feature]
 
+    # Use reasoning or convential LLM for API call
     api_call = adjust_graph_reasoning if reasoning else adjust_graph
 
+    # Use simplified graph shorter runtime and less token usage
     if simplify:
+        print("SIMPLE")
+        # Save original graph
         x_original = feature_data["x_vals"]
         y_original = feature_data["y_vals"][feature_data["current_iteration"]]
 
+        # Simplify graph by merging neighboring bins with marginally different y-values
         x_simple, y_simple = simplify_graph(x_original, y_original)
         feature_data["x_vals"] = x_simple
         feature_data["y_vals"][feature_data["current_iteration"]] = y_simple
 
-
+        # Generate adjusted graph
         adjusted_y_simple, explanation = api_call(feature_data)
 
+        # Interpolate adjusted graph to match original shape
         adjusted_y = interpolate_scores(x_simple, adjusted_y_simple, x_original)
         feature_data["x_vals"] = x_original
         feature_data["y_vals"][feature_data["current_iteration"]] = y_original
 
+    # Use raw graph
     else:
+        print("FULL")
+        # Generate adjusted graph
         adjusted_y, explanation = api_call(feature_data)
 
     feature_data["adjusted_y_vals"] = adjusted_y
     feature_data["explanation"] = explanation
     state["adjusted_visible"] = True
-
-def generate_adjusted_graph_full(ebm_data, selected_feature, state):
-    feature_data = ebm_data[selected_feature]
-
-    x_original = feature_data["x_vals"]
-    y_original = feature_data["y_vals"][feature_data["current_iteration"]]
-
-    print(f"original: {len(feature_data['y_vals'][feature_data['current_iteration']])}")
-
-    x_simple, y_simple = simplify_graph(x_original, y_original)
-
-    feature_data["x_vals"] = x_simple
-    feature_data["y_vals"][feature_data["current_iteration"]] = y_simple
-
-    print(f'simplified: {len(feature_data["y_vals"][feature_data["current_iteration"]])}')
-
-    adjusted_y_simple, explanation = adjust_graph(feature_data)
-
-    print(f'api response: {len(adjusted_y_simple)}')
-
-    #print(f"adjusted_scores: {adjusted_y_simple}")
-    #print(f"explanation: {explanation} ")
-
-    adjusted_y_interpolated = interpolate_scores(x_simple, adjusted_y_simple, x_original)
-
-    feature_data["adjusted_y_vals"] = adjusted_y_interpolated
-    feature_data["x_vals"] = x_original
-    feature_data["y_vals"][feature_data["current_iteration"]] = y_original
-    feature_data["explanation"] = explanation
-    state["adjusted_visible"] = True
-
-    print(f'final adjusted: {len(feature_data["adjusted_y_vals"])}')
-    print(f'final original: {len(feature_data["y_vals"][feature_data["current_iteration"]])}')
-
 
 
 # Helper function to generate adjusted graph

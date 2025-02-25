@@ -1,4 +1,5 @@
 import api_helpers
+import data
 
 
 def adjust_graph(feature_data: dict, model: str = "gpt-4o"):
@@ -69,11 +70,16 @@ def adjust_graph_reasoning(feature_data: dict, model: str = "o1-mini"):
     # Send the request for the adjusted graph
     completion = client.chat.completions.create(
         model=model,
-        reasoning_effort="medium",
+        #reasoning_effort="medium",
         messages= [
             {
                 "role": "user",
-                "content": api_helpers.get_reasoning_prompt(feature_data)
+                "content": [
+                    {
+                        "type": "text",
+                        "text": api_helpers.get_reasoning_prompt(feature_data, domain, prediction_target)
+                    },
+                ],
             }
         ]
     )
@@ -81,3 +87,7 @@ def adjust_graph_reasoning(feature_data: dict, model: str = "o1-mini"):
     response = completion.choices[0].message.content
 
     return response
+
+
+response1 = adjust_graph_reasoning(data.data_months)
+print(response1)

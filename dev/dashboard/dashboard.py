@@ -24,7 +24,7 @@ ebm_data = st.session_state.ebm_data
 # Dropdown menu for feature selection
 selected_feature = st.selectbox("Select Factor", list(ebm_data.keys()), disabled=st.session_state.adjusted_visible)
 feature_data = ebm_data[selected_feature]
-#print(feature_data)
+print(feature_data)
 
 #description = helpers.load_description(feature_data, description_path)
 st.text_area(
@@ -87,7 +87,7 @@ with col3:
         st.rerun()
 with col2:
     if not st.session_state.adjusted_visible and st.button("🛠️ Generate Adjusted Curve"):
-        helpers.generate_adjusted_graph_simple(ebm_data, selected_feature, st.session_state)
+        helpers.generate_adjusted_graph(ebm_data, selected_feature, st.session_state)
         st.rerun()
 
 #with col4:
