@@ -100,11 +100,11 @@ def get_reasoning_prompt(feature_data: dict, domain, target):
 Instructions:
 - Analyze the shape function of a Generalized Additive Model (GAM) below to detect contradictions with well-established domain knowledge.
 - A contradiction means that the relationship shown in the shape function is implausible or inconsistent with expert understanding in the given domain.
-- If contradictions exist, adjust the y-values accordingly while preserving the overall trend and smoothness of the shape function. 
-- Return only the adjusted y-values as a Python list, formatted exactly as follows:
-adjusted_y_vals = [value1, value2, ..., valueN]
-- Also provide a short explanation (maximum 2 sentences) describing **why the adjustments were necessary**:
-explanation = 'brief justification of why the adjustments were made'
+- If contradictions exist, adjust the y-values accordingly while preserving the overall trend and smoothness of the shape function.
+- Also provide a short explanation (maximum 2 sentences) describing **why the adjustments were necessary**: 
+- Format the output exactly as follows (do not modify variable names or structure):
+  adjusted_y_vals = [value1, value2, ..., valueN]
+  explanation = 'your explanation here'
 - Do not include any additional formatting, such as markdown code blocks.
 
 - Ensure that adjusted_y_vals contains exactly {len(feature_data["x_vals"])} elements. If the original list had {len(feature_data["x_vals"])}, the adjusted list must have the same length.
@@ -118,3 +118,37 @@ Context:
 X-values: {feature_data["x_vals"]}
 Y-values: {feature_data["y_vals"][feature_data["current_iteration"]]}
 """
+
+import ast
+import re
+
+def parse_response_reasoning(response: str):
+    """
+    Parses the LLM response to extract adjusted y-values and explanation.
+
+    Args:
+        response (str): The raw string response from the LLM.
+
+    Returns:
+        tuple: A tuple (adjusted_y_vals, explanation), where:
+            - adjusted_y_vals (list of float): The adjusted y-values.
+            - explanation (str): The explanation text.
+    """
+    # Regex to extract adjusted_y_vals and explanation
+    y_vals_match = re.search(r"adjusted_y_vals\s*=\s*(\[[^\]]+\])", response)
+    explanation_match = re.search(r"explanation\s*=\s*'([^']*)'", response)
+
+    if not y_vals_match or not explanation_match:
+        raise ValueError("Response format is invalid. Could not extract adjusted_y_vals or explanation.")
+
+    # Convert y-values string to a Python list
+    try:
+        adjusted_y_vals = ast.literal_eval(y_vals_match.group(1))
+        if not isinstance(adjusted_y_vals, list):
+            raise ValueError("Parsed adjusted_y_vals is not a list.")
+    except (SyntaxError, ValueError):
+        raise ValueError("Error parsing adjusted_y_vals from response.")
+
+    explanation = explanation_match.group(1)
+
+    return adjusted_y_vals, explanation

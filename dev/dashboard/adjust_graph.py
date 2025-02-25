@@ -86,8 +86,25 @@ def adjust_graph_reasoning(feature_data: dict, model: str = "o1-mini"):
 
     response = completion.choices[0].message.content
 
-    return response
+    adjusted_y_vals, explanation = api_helpers.parse_response_reasoning(response)
 
+    expected_length = len(feature_data["x_vals"])
+    actual_length = len(adjusted_y_vals)
 
-response1 = adjust_graph_reasoning(data.data_months)
-print(response1)
+    # Adjust the length to match the expected size
+    if actual_length < expected_length:
+        print(
+            f"[Warning] Adjusted y-values list is too short. Expected {expected_length}, got {actual_length}. Adding {expected_length - actual_length} values.")
+        last_value = adjusted_y_vals[-1] if adjusted_y_vals else 0  # Default to 0 if empty
+        adjusted_y_vals.extend([last_value] * (expected_length - actual_length))
+    elif actual_length > expected_length:
+        print(
+            f"[Warning] Adjusted y-values list is too long. Expected {expected_length}, got {actual_length}. Removing {actual_length - expected_length} values.")
+        adjusted_y_vals = adjusted_y_vals[:expected_length]
+
+    return adjusted_y_vals, explanation
+
+#y, x = adjust_graph_reasoning(data.data_score)
+
+#print(f"adjusted y: {y}")
+#print(f"explanation: {x}")
