@@ -87,7 +87,7 @@ with col3:
         st.rerun()
 with col2:
     if not st.session_state.adjusted_visible and st.button("🛠️ Generate Adjusted Curve"):
-        helpers.generate_adjusted_graph(ebm_data, selected_feature, st.session_state)
+        helpers.generate_adjusted_graph_simple(ebm_data, selected_feature, st.session_state)
         st.rerun()
 
 #with col4:

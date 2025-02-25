@@ -95,4 +95,9 @@ def parse_adjusted_y_vals(response: str, feature_data: dict):
 
     return adjusted_y_vals
 
+def get_reasoning_prompt(feature_data: dict):
+    return f"""
+Hello World
+"""
+
 

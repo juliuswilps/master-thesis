@@ -1,7 +1,7 @@
 import api_helpers
 
 
-def adjust_graph(feature_data: dict, model: str = "o3-mini"):
+def adjust_graph(feature_data: dict, model: str = "gpt-4o"):
     client = api_helpers.setup()
 
     # Set domain and prediction target
@@ -45,8 +45,8 @@ def adjust_graph(feature_data: dict, model: str = "o3-mini"):
     })
 
     # Call the API for the explanation of adjustments
-    completion = llm.chat.completions.create(
-        model="gpt-4o-mini",
+    completion = client.chat.completions.create(
+        model=model,
         messages=messages,
     )
     explanation_response = completion.choices[0].message.content
@@ -59,4 +59,25 @@ def adjust_graph(feature_data: dict, model: str = "o3-mini"):
 
     return adjusted_y_vals, explanation
 
+def adjust_graph_reasoning(feature_data: dict, model: str = "o1-mini"):
+    client = api_helpers.setup()
 
+    # Set domain and prediction target
+    domain = "financial risk modeling"
+    prediction_target = "predict whether a loan will be paid off (1) or default (0)"
+
+    # Send the request for the adjusted graph
+    completion = client.chat.completions.create(
+        model=model,
+        reasoning_effort="medium",
+        messages= [
+            {
+                "role": "user",
+                "content": api_helpers.get_reasoning_prompt(feature_data)
+            }
+        ]
+    )
+
+    response = completion.choices[0].message.content
+
+    return response

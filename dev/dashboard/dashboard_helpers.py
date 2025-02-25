@@ -7,7 +7,7 @@ from interpret.glassbox import ExplainableBoostingClassifier, ExplainableBoostin
 from sklearn.metrics import accuracy_score, r2_score
 from typing import Union
 from loading_helpers import get_x_vals, simplify_graph, interpolate_scores
-from adjust_graph import adjust_graph
+from adjust_graph import adjust_graph, adjust_graph_reasoning
 
 
 def load_ebm_data(ebm_path: str, description_path: str = ""):
@@ -88,7 +88,34 @@ def create_shape_function_plot(feature_data, state):
     return fig
 
 
-def generate_adjusted_graph(ebm_data, selected_feature, state):
+def generate_adjusted_graph(ebm_data, selected_feature, state, simplify = True, reasoning = False):
+    feature_data = ebm_data[selected_feature]
+
+    api_call = adjust_graph_reasoning if reasoning else adjust_graph
+
+    if simplify:
+        x_original = feature_data["x_vals"]
+        y_original = feature_data["y_vals"][feature_data["current_iteration"]]
+
+        x_simple, y_simple = simplify_graph(x_original, y_original)
+        feature_data["x_vals"] = x_simple
+        feature_data["y_vals"][feature_data["current_iteration"]] = y_simple
+
+
+        adjusted_y_simple, explanation = api_call(feature_data)
+
+        adjusted_y = interpolate_scores(x_simple, adjusted_y_simple, x_original)
+        feature_data["x_vals"] = x_original
+        feature_data["y_vals"][feature_data["current_iteration"]] = y_original
+
+    else:
+        adjusted_y, explanation = api_call(feature_data)
+
+    feature_data["adjusted_y_vals"] = adjusted_y
+    feature_data["explanation"] = explanation
+    state["adjusted_visible"] = True
+
+def generate_adjusted_graph_full(ebm_data, selected_feature, state):
     feature_data = ebm_data[selected_feature]
 
     x_original = feature_data["x_vals"]
