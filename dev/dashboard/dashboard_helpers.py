@@ -186,7 +186,7 @@ def calculate_model_accuracy(ebm, test_data_path):
     return accuracy
 
 
-def update_term_scores(ebm, feature_data, adjusted=False):
+def update_term_scores(ebm, ebm_data, selected_feature, adjusted=False):
     """
     Update the term_scores_ of the EBM model with adjusted values from ebm_data.
 
@@ -198,12 +198,20 @@ def update_term_scores(ebm, feature_data, adjusted=False):
         Updated EBM model with adjusted term_scores_.
     """
     updated_ebm = ebm.copy()
-    idx = ebm.feature_names_in_.index(feature_data["feature_name"])
-    if adjusted:
-        updated_ebm.term_scores_[idx][1:-1] = feature_data["adjusted_y_vals"]  # preserve missing and unknown bins
-    else:
-        updated_ebm.term_scores_[idx][1:-1] = feature_data["y_vals"][feature_data["current_iteration"]]
 
+    for feature in updated_ebm.feature_names_in_:
+        idx = ebm.feature_names_in_.index(feature)  # Get index of the feature
+        if feature == selected_feature and adjusted:
+            updated_ebm.term_scores_[idx][1:-1] = ebm_data[feature]["adjusted_y_vals"]
+        else:
+            updated_ebm.term_scores_[idx][1:-1] = ebm_data[feature]["y_vals"][ebm_data[feature]["current_iteration"]]
+
+    """idx = ebm.feature_names_in_.index(ebm_data[selected_feature]["feature_name"])
+    if adjusted:
+        updated_ebm.term_scores_[idx][1:-1] = ebm_data[selected_feature]["adjusted_y_vals"]  # preserve missing and unknown bins
+    else:
+        updated_ebm.term_scores_[idx][1:-1] = ebm_data[selected_feature]["y_vals"][ebm_data[selected_feature]["current_iteration"]]
+"""
     return updated_ebm
 
 def keep_changes(ebm_data: dict, selected_feature: str, state):

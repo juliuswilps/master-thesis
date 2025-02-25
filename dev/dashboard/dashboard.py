@@ -24,7 +24,7 @@ ebm_data = st.session_state.ebm_data
 # Dropdown menu for feature selection
 selected_feature = st.selectbox("Select Factor", list(ebm_data.keys()), disabled=st.session_state.adjusted_visible)
 feature_data = ebm_data[selected_feature]
-print(feature_data)
+#print(feature_data)
 
 #description = helpers.load_description(feature_data, description_path)
 st.text_area(
@@ -38,13 +38,13 @@ st.text_area(
 #st.subheader("AI Model Prediction Accuracy")
 col1, col2 = st.columns(2)
 with col1:
-    current_ebm = helpers.update_term_scores(ebm, feature_data)
+    current_ebm = helpers.update_term_scores(ebm, ebm_data, selected_feature)
     original_model_accuracy = helpers.calculate_model_accuracy(current_ebm, test_data_path)
     st.metric(label="AI Model Prediction Accuracy", value=f"{original_model_accuracy:.2%}")
 with col2:
     #if feature_data["adjusted_visible"]:
     if st.session_state.adjusted_visible:
-        adjusted_ebm = helpers.update_term_scores(ebm, feature_data, adjusted=True)
+        adjusted_ebm = helpers.update_term_scores(ebm, ebm_data, selected_feature, adjusted=True)
         adjusted_model_accuracy = helpers.calculate_model_accuracy(adjusted_ebm, test_data_path)
         st.metric(label="Accuracy after Adjustment", value=f"{adjusted_model_accuracy:.2%}")
 
