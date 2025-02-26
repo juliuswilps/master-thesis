@@ -8,6 +8,7 @@ from sklearn.metrics import accuracy_score, r2_score
 from typing import Union
 from loading_helpers import get_x_vals, simplify_graph, interpolate_scores
 from adjust_graph import adjust_graph, adjust_graph_reasoning
+import time
 
 
 def load_ebm_data(ebm_path: str, description_path: str = ""):
@@ -89,6 +90,8 @@ def create_shape_function_plot(feature_data, state):
 
 
 def generate_adjusted_graph(ebm_data, selected_feature, state, simplify = False, reasoning = False):
+    start_time = time.perf_counter()
+
     feature_data = ebm_data[selected_feature]
 
     # Use reasoning or convential LLM for API call
@@ -124,35 +127,11 @@ def generate_adjusted_graph(ebm_data, selected_feature, state, simplify = False,
     feature_data["explanation"] = explanation
     state["adjusted_visible"] = True
 
+    end_time = time.perf_counter()
+    execution_time = end_time - start_time
+    print(execution_time)
 
-# Helper function to generate adjusted graph
-def generate_adjusted_graph1(feature_data, state):
-    """
-    Generate adjusted shape values for the selected feature.
 
-    Args:
-        feature_name (str): Name of the selected feature.
-    """
-
-    adjusted_scores = [-y for y in feature_data["y_vals"][feature_data["current_iteration"]]]
-    explanation = "I inverted the y-values because the original shape function contradicted domain knowledge by assigning lower probabilities of loan repayment to higher credit scores. In reality, a higher credit score should indicate a lower risk of default, meaning the function should have positive values for high scores and negative values for low scores. This simple inversion corrects the direction while preserving the relative differences between values."
-
-    feature_data["adjusted_y_vals"] = adjusted_scores
-    feature_data["explanation"] = explanation
-    state["adjusted_visible"] = True
-
-    """else:
-        llm = "gpt-4o-mini"
-        ebm = state.ebm
-        idx = ebm.feature_names_in_.index(feature_name)
-
-        adjusted_scores, explanation = adjust_graph(llm, ebm, idx)
-
-    # Save adjusted values to session state
-    state["ebm_data"][feature_name]["adjusted_y_vals"] = adjusted_scores
-    state["ebm_data"][feature_name]["explanation"] = explanation
-    #state["ebm_data"][feature_name]["adjusted_visible"] = True
-    state["adjusted_visible"] = True"""
 
 def calculate_model_accuracy(ebm, test_data_path):
     """

@@ -3,6 +3,9 @@ import os
 from dotenv import load_dotenv
 import ast
 
+import ast
+import re
+
 import data
 
 def setup():
@@ -119,8 +122,6 @@ X-values: {feature_data["x_vals"]}
 Y-values: {feature_data["y_vals"][feature_data["current_iteration"]]}
 """
 
-import ast
-import re
 
 def parse_response_reasoning(response: str):
     """
