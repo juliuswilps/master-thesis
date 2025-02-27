@@ -2,18 +2,15 @@ import streamlit as st
 import dashboard_helpers as helpers
 import os
 
-print(os.getcwd())
-st.write("Current working directory:", os.getcwd())
+st.set_page_config(
+    page_title="Shape Function Dashboard",
+    layout="wide",
+)
 
 
 ebm_path = "/mount/src/master-thesis/dev/dashboard/ebm-heloc.pkl"
 description_path = "/mount/src/master-thesis/dev/dashboard/heloc-description.json"
 test_data_path = "/mount/src/master-thesis/dev/dashboard/heloc-test.csv"
-
-st.set_page_config(
-    page_title="Shape Function Dashboard",
-    layout="wide",
-)
 
 # Initialize session state for 'ebm_data'
 if "ebm_data" not in st.session_state:
