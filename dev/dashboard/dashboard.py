@@ -1,6 +1,5 @@
 import streamlit as st
 import dashboard_helpers as helpers
-import os
 
 st.set_page_config(
     page_title="Shape Function Dashboard",
@@ -8,9 +7,13 @@ st.set_page_config(
 )
 
 
-ebm_path = "/mount/src/master-thesis/dev/dashboard/final-ebm-model.pkl"
-description_path = "/mount/src/master-thesis/dev/dashboard/heloc-description.json"
-test_data_path = "/mount/src/master-thesis/dev/dashboard/heloc-test.csv"
+ebm_path = "final-ebm-model.pkl"
+description_path = "heloc-description.json"
+test_data_path = "heloc-test.csv"
+
+#ebm_path = "/mount/src/master-thesis/dev/dashboard/final-ebm-model.pkl"
+#description_path = "/mount/src/master-thesis/dev/dashboard/heloc-description.json"
+#test_data_path = "/mount/src/master-thesis/dev/dashboard/heloc-test.csv"
 
 # Initialize session state for 'ebm_data'
 if "ebm_data" not in st.session_state:
@@ -37,18 +40,48 @@ st.text_area(
 )
 
 # Display accuracy
-#st.subheader("AI Model Prediction Accuracy")
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
+
 with col1:
     current_ebm = helpers.update_term_scores(ebm, ebm_data, selected_feature)
     original_model_accuracy = helpers.calculate_model_accuracy(current_ebm, test_data_path)
-    st.metric(label="AI Model Prediction Accuracy", value=f"{original_model_accuracy:.2%}")
+
+    # Custom div for styling
+    st.markdown(
+        f"""
+        <div style="text-align: center;">
+            <p style="font-size: 14px; color: black; margin-top: 0;">
+                AI Model Prediction Accuracy
+            </p>
+            <p style="color: blue; font-size: 24px; font-weight: bold; margin-bottom: 0;">
+                {original_model_accuracy:.2%}
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 with col2:
-    #if feature_data["adjusted_visible"]:
     if st.session_state.adjusted_visible:
         adjusted_ebm = helpers.update_term_scores(ebm, ebm_data, selected_feature, adjusted=True)
         adjusted_model_accuracy = helpers.calculate_model_accuracy(adjusted_ebm, test_data_path)
-        st.metric(label="Accuracy after Adjustment", value=f"{adjusted_model_accuracy:.2%}")
+
+        # Custom div for styling
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <p style="font-size: 14px; color: black; margin-top: 0;">
+                    Accuracy after Adjustment
+                </p>
+                <p style="color: orange; font-size: 24px; font-weight: bold; margin-bottom: 0;">
+                    {adjusted_model_accuracy:.2%}
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
 
 # Plot the shape function
 col1, col2 = st.columns([3, 1])
