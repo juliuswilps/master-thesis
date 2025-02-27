@@ -91,15 +91,13 @@ def adjust_graph_reasoning(feature_data: dict, model: str = "o1-mini"):
     expected_length = len(feature_data["x_vals"])
     actual_length = len(adjusted_y_vals)
 
-    # Adjust the length to match the expected size
+    # Ensure the length matches expected size
     if actual_length < expected_length:
-        print(
-            f"[Warning] Adjusted y-values list is too short. Expected {expected_length}, got {actual_length}. Adding {expected_length - actual_length} values.")
+        print(f"[Warning] Adjusted y-values list is too short. Expected {expected_length}, got {actual_length}. Padding with last known value.")
         last_value = adjusted_y_vals[-1] if adjusted_y_vals else 0  # Default to 0 if empty
         adjusted_y_vals.extend([last_value] * (expected_length - actual_length))
     elif actual_length > expected_length:
-        print(
-            f"[Warning] Adjusted y-values list is too long. Expected {expected_length}, got {actual_length}. Removing {actual_length - expected_length} values.")
+        print(f"[Warning] Adjusted y-values list is too long. Expected {expected_length}, got {actual_length}. Truncating.")
         adjusted_y_vals = adjusted_y_vals[:expected_length]
 
     return adjusted_y_vals, explanation

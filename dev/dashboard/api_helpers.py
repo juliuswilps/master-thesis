@@ -2,11 +2,7 @@ from openai import OpenAI
 import os
 from dotenv import load_dotenv
 import ast
-
-import ast
 import re
-
-import data
 
 def setup():
     if not os.getenv("OPENAI_API_KEY"):
@@ -125,33 +121,32 @@ Y-values: {feature_data["y_vals"][feature_data["current_iteration"]]}
 """
 
 
-def parse_response_reasoning(response: str):
+def parse_response_reasoning(response):
     """
-    Parses the LLM response to extract adjusted y-values and explanation.
+    Parses the response from the LLM to extract adjusted_y_vals and explanation.
 
     Args:
-        response (str): The raw string response from the LLM.
+        response (str): The LLM-generated response.
 
     Returns:
-        tuple: A tuple (adjusted_y_vals, explanation), where:
-            - adjusted_y_vals (list of float): The adjusted y-values.
-            - explanation (str): The explanation text.
+        tuple: (adjusted_y_vals, explanation)
     """
-    # Regex to extract adjusted_y_vals and explanation
     y_vals_match = re.search(r"adjusted_y_vals\s*=\s*(\[[^\]]+\])", response)
     explanation_match = re.search(r"explanation\s*=\s*'([^']*)'", response)
 
     if not y_vals_match or not explanation_match:
-        raise ValueError("Response format is invalid. Could not extract adjusted_y_vals or explanation.")
+        print("[Error] Response format is invalid. Could not extract adjusted_y_vals or explanation.")
+        return [], "No valid explanation provided."
 
     # Convert y-values string to a Python list
     try:
         adjusted_y_vals = ast.literal_eval(y_vals_match.group(1))
         if not isinstance(adjusted_y_vals, list):
             raise ValueError("Parsed adjusted_y_vals is not a list.")
-    except (SyntaxError, ValueError):
-        raise ValueError("Error parsing adjusted_y_vals from response.")
+    except (SyntaxError, ValueError) as e:
+        print(f"[Error] Failed to parse adjusted_y_vals: {e}")
+        adjusted_y_vals = []  # Default to empty list
 
-    explanation = explanation_match.group(1)
+    explanation = explanation_match.group(1) if explanation_match else "No explanation provided."
 
     return adjusted_y_vals, explanation
