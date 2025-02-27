@@ -8,7 +8,7 @@ st.set_page_config(
 )
 
 
-ebm_path = "/mount/src/master-thesis/dev/dashboard/ebm-heloc.pkl"
+ebm_path = "/mount/src/master-thesis/dev/dashboard/final-ebm-model.pkl"
 description_path = "/mount/src/master-thesis/dev/dashboard/heloc-description.json"
 test_data_path = "/mount/src/master-thesis/dev/dashboard/heloc-test.csv"
 
