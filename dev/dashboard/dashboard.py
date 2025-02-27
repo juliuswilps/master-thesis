@@ -6,9 +6,9 @@ print(os.getcwd())
 st.write("Current working directory:", os.getcwd())
 
 
-ebm_path = "ebm-heloc.pkl"
-description_path = "heloc-description.json"
-test_data_path = "heloc-test.csv"
+ebm_path = "/mount/src/master-thesis/dev/dashboard/ebm-heloc.pkl"
+description_path = "/mount/src/master-thesis/dev/dashboard/heloc-description.json"
+test_data_path = "/mount/src/master-thesis/dev/dashboard/heloc-test.csv"
 
 st.set_page_config(
     page_title="Shape Function Dashboard",
