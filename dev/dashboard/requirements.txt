@@ -1,13 +1,7 @@
 joblib
-json
 pandas
 plotly
 interpret
-sklearn
-typing
-time
+scikit-learn
 scipy
-os
-dotenv
-ast
-re
+python-dotenv
