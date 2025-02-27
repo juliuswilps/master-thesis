@@ -1,5 +1,10 @@
 import streamlit as st
 import dashboard_helpers as helpers
+import os
+
+print(os.getcwd())
+st.write("Current working directory:", os.getcwd())
+
 
 ebm_path = "ebm-heloc.pkl"
 description_path = "heloc-description.json"
