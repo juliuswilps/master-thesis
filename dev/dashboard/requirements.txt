@@ -5,3 +5,4 @@ interpret
 scikit-learn
 scipy
 python-dotenv
+openai
