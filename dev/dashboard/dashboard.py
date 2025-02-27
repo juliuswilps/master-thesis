@@ -62,7 +62,7 @@ with col2:
     st.text_area(
         "Explanation for Suggested Adjustment",
         explanation_text,
-        height=200,
+        height=400,
         disabled=True,
     )
 
