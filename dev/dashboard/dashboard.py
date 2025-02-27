@@ -7,13 +7,13 @@ st.set_page_config(
 )
 
 
-ebm_path = "final-ebm-model.pkl"
-description_path = "heloc-description.json"
-test_data_path = "heloc-test.csv"
+#ebm_path = "final-ebm-model.pkl"
+#description_path = "heloc-description.json"
+#test_data_path = "heloc-test.csv"
 
-#ebm_path = "/mount/src/master-thesis/dev/dashboard/final-ebm-model.pkl"
-#description_path = "/mount/src/master-thesis/dev/dashboard/heloc-description.json"
-#test_data_path = "/mount/src/master-thesis/dev/dashboard/heloc-test.csv"
+ebm_path = "/mount/src/master-thesis/dev/dashboard/final-ebm-model.pkl"
+description_path = "/mount/src/master-thesis/dev/dashboard/heloc-description.json"
+test_data_path = "/mount/src/master-thesis/dev/dashboard/heloc-test.csv"
 
 # Initialize session state for 'ebm_data'
 if "ebm_data" not in st.session_state:
