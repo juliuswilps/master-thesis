@@ -104,7 +104,8 @@ Instructions:
 - Analyze the shape function of a Generalized Additive Model (GAM) below to detect contradictions with well-established domain knowledge.
 - A contradiction means that the relationship shown in the shape function is implausible or inconsistent with expert understanding in the given domain.
 - If contradictions exist, adjust the y-values accordingly while preserving the overall trend and smoothness of the shape function.
-- Also provide a short explanation (maximum 2 sentences) describing **why the adjustments were necessary**: 
+- Also provide a short explanation (maximum 3 sentences) describing **why the adjustments were necessary**.
+- Use clear, everyday language suitable for professionals in {domain} without assuming knowledge of statistics or machine learning.
 - Format the output exactly as follows (do not modify variable names or structure):
   adjusted_y_vals = [value1, value2, ..., valueN]
   explanation = 'your explanation here'
@@ -113,7 +114,7 @@ Instructions:
 - Ensure that adjusted_y_vals contains exactly {len(feature_data["x_vals"])} elements. If the original list had {len(feature_data["x_vals"])}, the adjusted list must have the same length.
 
 Context:
-- The shape function represents the relationship between {feature_data["feature_name"]} and the prediction target, which is to {target}.
+- The graph represents the relationship between {feature_data["feature_name"]} and the prediction target, which is to {target}.
 - Domain: {domain}
 - Data Type: {feature_data["feature_type"]}
 - Description: {feature_data.get("feature_description", "No description provided.")}
