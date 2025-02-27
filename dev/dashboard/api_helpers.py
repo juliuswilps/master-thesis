@@ -106,6 +106,7 @@ Instructions:
 - If contradictions exist, adjust the y-values accordingly while preserving the overall trend and smoothness of the shape function.
 - Also provide a short explanation (maximum 3 sentences) describing **why the adjustments were necessary**.
 - Use clear, everyday language suitable for professionals in {domain} without assuming knowledge of statistics or machine learning.
+- In the explanation, do not use the term 'shape function'. Use 'influence curve' instead.
 - Format the output exactly as follows (do not modify variable names or structure):
   adjusted_y_vals = [value1, value2, ..., valueN]
   explanation = 'your explanation here'
